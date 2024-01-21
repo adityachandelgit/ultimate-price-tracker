@@ -1,0 +1,31 @@
+server:
+  port: 9876
+
+app:
+  store-cookie:
+    amazon: ${AMAZON_COOKIE}
+    anthropologie: ${ANTHROPOLOGIE_COOKIE}
+  email:
+    from: ${FROM_EMAIL}
+    from-password: ${FROM_PASSWORD}
+    to: ${TO_EMAIL}
+
+spring:
+  quartz:
+    job-store-type: jdbc
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
