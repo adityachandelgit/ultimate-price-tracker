@@ -18,8 +18,8 @@ import static org.quartz.Trigger.TriggerState.PAUSED;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/quartz-jobs")
-public class QuartzJobController {
+@RequestMapping("/cron")
+public class CronController {
 
     private final Scheduler scheduler;
 
