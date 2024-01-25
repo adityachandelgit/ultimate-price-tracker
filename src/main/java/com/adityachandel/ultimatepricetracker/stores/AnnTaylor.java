@@ -44,7 +44,7 @@ public class AnnTaylor implements Store {
     }
 
     @Override
-    public NewItemInfo getNewItemInfo(StoreType storeType, String itemId) {
+    public NewItemInfo getNewItemInfo(String itemId) {
         return null;
     }
 

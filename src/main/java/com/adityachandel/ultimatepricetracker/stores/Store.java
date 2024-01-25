@@ -7,5 +7,5 @@ import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 
 public interface Store {
     Item fetchItem(Item item);
-    NewItemInfo getNewItemInfo(StoreType storeType, String itemId);
+    NewItemInfo getNewItemInfo(String itemId);
 }

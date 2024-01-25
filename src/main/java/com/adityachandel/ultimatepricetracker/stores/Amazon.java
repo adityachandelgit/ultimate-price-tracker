@@ -34,7 +34,7 @@ public class Amazon implements Store {
     }
 
     @Override
-    public NewItemInfo getNewItemInfo(StoreType storeType, String itemId) {
+    public NewItemInfo getNewItemInfo(String itemId) {
         return null;
     }
 

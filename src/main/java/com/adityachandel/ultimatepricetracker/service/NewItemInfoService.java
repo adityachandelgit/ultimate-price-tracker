@@ -14,7 +14,6 @@ public class NewItemInfoService {
     private final StoreConfig storeConfig;
 
     public NewItemInfo get(StoreType storeType, String itemId) {
-        Store store = storeConfig.getStore(storeType);
-        return store.getNewItemInfo(storeType, itemId);
+        return storeConfig.getStore(storeType).getNewItemInfo(itemId);
     }
 }

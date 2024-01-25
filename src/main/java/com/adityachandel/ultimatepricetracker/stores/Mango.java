@@ -1,5 +1,7 @@
 package com.adityachandel.ultimatepricetracker.stores;
 
+import com.adityachandel.ultimatepricetracker.FetchException;
+import com.adityachandel.ultimatepricetracker.ItemUtils;
 import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
 import com.adityachandel.ultimatepricetracker.model.Item;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
@@ -8,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -18,13 +21,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Metadata.ColorSizes;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Metadata.ColorSizes.Color;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Metadata.ColorSizes.Size;
+import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes;
+import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.Color;
+import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.Size;
+import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.SizePrice;
 
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class Mango implements Store {
 
     private ObjectMapper objectMapper;
@@ -32,63 +37,50 @@ public class Mango implements Store {
     @SneakyThrows
     @Override
     public Item fetchItem(Item item) {
-        JsonNode jsonNode = getData(item.getExternalId());
-        item.setUrl("https://shop.mango.com" + jsonNode.get("canonicalUrl").asText());
-        if (item.getMetadata() != null && item.getMetadata().getColor() != null && item.getMetadata().getSize() != null) {
-            setDataForSizeColor(jsonNode, item);
-        } else {
-            setDataForNoSizeColor(jsonNode, item);
+        try {
+            NewItemInfo newItemInfo = getNewItemInfo(item.getExternalId());
+            ItemUtils.updateItem(item, newItemInfo);
+            return item;
+        } catch (Exception e) {
+            log.error("Failed to fetch " + item.getUrl() + " | Error: " + e.getMessage());
+            throw new FetchException("Failed to fetch " + item.getUrl() + " | Error: " + e.getMessage(), e);
         }
-        item.setLatestPriceTimestamp(Instant.now());
-        return item;
-    }
-
-    private void setDataForSizeColor(JsonNode jsonNode, Item item) {
-        item.setName(jsonNode.get("name").asText() + " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName());
-        ArrayNode colors = (ArrayNode) jsonNode.get("colors").get("colors");
-        for (JsonNode colorNode : colors) {
-            if (colorNode.get("id").asText().equals(item.getMetadata().getColor().getId())) {
-                item.setLatestPrice(colorNode.get("price").get("price").asInt());
-                item.setImageUrl("https://st.mngbcn.com/rcs/pics/static" + colorNode.get("images").get(0).get(0).get("url").asText());
-            }
-        }
-    }
-
-    void setDataForNoSizeColor(JsonNode jsonNode, Item item) {
-        item.setName(jsonNode.get("name").asText());
-        item.setImageUrl("https://st.mngbcn.com/rcs/pics/static" + jsonNode.findPath("url").asText());
-        item.setLatestPrice(jsonNode.get("price").get("price").asDouble());
     }
 
     @Override
-    public NewItemInfo getNewItemInfo(StoreType storeType, String itemId) {
-        JsonNode jsonNode = getData(itemId);
-
+    public NewItemInfo getNewItemInfo(String itemId) {
+        JsonNode root = getData(itemId);
+        ArrayNode colors = (ArrayNode) root.get("colors").get("colors");
         List<ColorSizes> colorSizes = new ArrayList<>();
-        ArrayNode colors = (ArrayNode) jsonNode.get("colors").get("colors");
         for (JsonNode colorNode : colors) {
             Color color = Color.builder()
                     .id(colorNode.get("id").asText())
                     .name(colorNode.get("label").asText())
                     .build();
-            List<Size> sizes = new ArrayList<>();
+            List<SizePrice> sizePrices = new ArrayList<>();
+            long price = colorNode.get("price").get("price").asLong();
             for (JsonNode sizeNode : colorNode.get("sizes")) {
-                sizes.add(Size.builder()
-                        .id(sizeNode.get("id").asText())
-                        .name(sizeNode.get("value").asText())
-                        .build());
+                SizePrice sizePrice = SizePrice.builder()
+                        .size(Size.builder()
+                                .id(sizeNode.get("id").asText())
+                                .name(sizeNode.get("value").asText())
+                                .build())
+                        .price(price)
+                        .build();
+                sizePrices.add(sizePrice);
             }
             colorSizes.add(ColorSizes.builder()
                     .color(color)
-                    .sizes(sizes)
+                    .sizePrices(sizePrices)
                     .build());
         }
 
         return NewItemInfo.builder()
-                .store(storeType)
-                .imageUrl("https://st.mngbcn.com/rcs/pics/static" + jsonNode.findPath("url").asText())
-                .name(jsonNode.get("name").asText())
-                .metadata(NewItemInfo.Metadata.builder()
+                .store(StoreType.MANGO)
+                .imageUrl("https://st.mngbcn.com/rcs/pics/static" + root.findPath("url").asText())
+                .name(root.get("name").asText())
+                .url("https://shop.mango.com" + root.get("canonicalUrl").asText())
+                .metadata(NewItemInfo.Options.builder()
                         .colorSizes(colorSizes)
                         .build())
                 .build();
