@@ -6,11 +6,11 @@ import com.adityachandel.ultimatepricetracker.config.model.StoreCookieProperties
 import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
 import com.adityachandel.ultimatepricetracker.model.Item;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -42,7 +42,7 @@ public class Amazon implements Store {
         String url = buildUrl(item.getExternalId());
         Element root = null;
         try {
-            root = Jsoup.parse(doGet(url)).body();
+            root = Jsoup.parse(doGet1(url)).body();
             Elements elements = root.select("div[id=aod-offer]");
 
             int lowestPrice = Integer.MAX_VALUE;
@@ -82,6 +82,34 @@ public class Amazon implements Store {
         }
     }
 
+    private String doGet1(String url) {
+        HttpResponse<String> response = Unirest.get(url)
+                .header("authority", "www.amazon.com")
+                .header("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+                .header("accept-language", "en-US,en;q=0.9")
+                .header("cookie", cookieProperties.getAmazon())
+                .header("device-memory", "8")
+                .header("downlink", "7.1")
+                .header("dpr", "2")
+                .header("ect", "4g")
+                .header("rtt", "50")
+                .header("sec-ch-device-memory", "8")
+                .header("sec-ch-dpr", "2")
+                .header("sec-ch-ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
+                .header("sec-ch-ua-mobile", "?0")
+                .header("sec-ch-ua-platform", "\"macOS\"")
+                .header("sec-ch-viewport-width", "689")
+                .header("sec-fetch-dest", "document")
+                .header("sec-fetch-mode", "navigate")
+                .header("sec-fetch-site", "none")
+                .header("sec-fetch-user", "?1")
+                .header("upgrade-insecure-requests", "1")
+                .header("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .header("viewport-width", "689")
+                .asString();
+        return response.getBody();
+    }
+
     private String doGet(String url) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
@@ -91,10 +119,9 @@ public class Amazon implements Store {
                 .addHeader("authority", "www.amazon.com")
                 .addHeader("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
                 .addHeader("accept-language", "en-US,en;q=0.9")
-                .addHeader("cache-control", "max-age=0")
                 .addHeader("cookie", cookieProperties.getAmazon())
                 .addHeader("device-memory", "8")
-                .addHeader("downlink", "10")
+                .addHeader("downlink", "7.1")
                 .addHeader("dpr", "2")
                 .addHeader("ect", "4g")
                 .addHeader("rtt", "50")
@@ -103,14 +130,14 @@ public class Amazon implements Store {
                 .addHeader("sec-ch-ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
                 .addHeader("sec-ch-ua-mobile", "?0")
                 .addHeader("sec-ch-ua-platform", "\"macOS\"")
-                .addHeader("sec-ch-viewport-width", "1035")
+                .addHeader("sec-ch-viewport-width", "689")
                 .addHeader("sec-fetch-dest", "document")
                 .addHeader("sec-fetch-mode", "navigate")
                 .addHeader("sec-fetch-site", "none")
                 .addHeader("sec-fetch-user", "?1")
                 .addHeader("upgrade-insecure-requests", "1")
                 .addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                .addHeader("viewport-width", "1035")
+                .addHeader("viewport-width", "689")
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();
