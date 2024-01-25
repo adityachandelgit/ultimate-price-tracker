@@ -2,8 +2,8 @@ package com.adityachandel.ultimatepricetracker.stores;
 
 import com.adityachandel.ultimatepricetracker.FetchException;
 import com.adityachandel.ultimatepricetracker.ItemUtils;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
 import com.adityachandel.ultimatepricetracker.model.Item;
+import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,14 +17,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.Color;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.Size;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.SizePrice;
+import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.*;
 
 
 @AllArgsConstructor
@@ -76,6 +73,7 @@ public class Mango implements Store {
         }
 
         return NewItemInfo.builder()
+                .id(itemId)
                 .store(StoreType.MANGO)
                 .imageUrl("https://st.mngbcn.com/rcs/pics/static" + root.findPath("url").asText())
                 .name(root.get("name").asText())

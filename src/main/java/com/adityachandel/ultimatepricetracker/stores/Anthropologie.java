@@ -52,10 +52,9 @@ public class Anthropologie implements Store {
     @Override
     public NewItemInfo getNewItemInfo(String itemId) {
         NewItemInfo newItemInfo = NewItemInfo.builder()
-                .store(StoreType.ANTHROPOLOGIE)
                 .id(itemId)
+                .store(StoreType.ANTHROPOLOGIE)
                 .url("https://www.anthropologie.com/shop/" + itemId)
-                .latestPriceTimestamp(Instant.now())
                 .build();
         List<ColorSizes> colorSizesList = new ArrayList<>();
         String url = "https://www.anthropologie.com/shop/" + itemId;

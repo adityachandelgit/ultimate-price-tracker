@@ -3,6 +3,8 @@ package com.adityachandel.ultimatepricetracker;
 import com.adityachandel.ultimatepricetracker.model.Item;
 import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
 
+import java.time.Instant;
+
 public class ItemUtils {
 
     public static long getLatestPrice(NewItemInfo newItemInfo, Item item) {
@@ -25,6 +27,7 @@ public class ItemUtils {
         item.setName(newItemInfo.getName() + " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName());
         item.setLatestPriceTimestamp(newItemInfo.getLatestPriceTimestamp());
         item.setImageUrl(newItemInfo.getImageUrl());
+        item.setLatestPriceTimestamp(Instant.now());
         item.setUrl(newItemInfo.getUrl());
     }
 
