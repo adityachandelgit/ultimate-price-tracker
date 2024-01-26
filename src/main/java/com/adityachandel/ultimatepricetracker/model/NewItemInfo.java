@@ -15,6 +15,7 @@ public class NewItemInfo {
     private String name;
     private String url;
     private String imageUrl;
+    private Long price;
     private Instant latestPriceTimestamp;
     private Options metadata;
 

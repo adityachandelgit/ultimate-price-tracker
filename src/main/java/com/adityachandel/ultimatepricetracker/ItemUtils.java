@@ -23,11 +23,15 @@ public class ItemUtils {
     }
 
     public static void updateItem(Item item, NewItemInfo newItemInfo) {
-        item.setLatestPrice(getLatestPrice(newItemInfo, item));
         item.setName(newItemInfo.getName() + " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName());
         item.setLatestPriceTimestamp(newItemInfo.getLatestPriceTimestamp());
         item.setImageUrl(newItemInfo.getImageUrl());
-        item.setLatestPriceTimestamp(Instant.now());
+        item.setLatestPrice(newItemInfo.getPrice());
+        if (newItemInfo.getMetadata() == null) {
+            item.setLatestPrice(getLatestPrice(newItemInfo, item));
+        } else {
+            item.setLatestPriceTimestamp(Instant.now());
+        }
         item.setUrl(newItemInfo.getUrl());
     }
 
