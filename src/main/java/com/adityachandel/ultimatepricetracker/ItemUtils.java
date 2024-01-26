@@ -24,19 +24,16 @@ public class ItemUtils {
 
     public static void updateItem(Item item, NewItemInfo newItemInfo) {
         String name = newItemInfo.getName();
-        if(item.getMetadata() != null) {
-            name += " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName();
-        }
-        item.setName(name);
-        item.setName(newItemInfo.getName());
-        item.setLatestPriceTimestamp(newItemInfo.getLatestPriceTimestamp());
-        item.setImageUrl(newItemInfo.getImageUrl());
-        item.setLatestPrice(newItemInfo.getPrice());
         if (newItemInfo.getMetadata() != null) {
+            name += " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName();
             item.setLatestPrice(getLatestPrice(newItemInfo, item));
         } else {
-            item.setLatestPriceTimestamp(Instant.now());
+            item.setLatestPrice(newItemInfo.getPrice());
         }
+        item.setName(name);
+        item.setLatestPriceTimestamp(newItemInfo.getLatestPriceTimestamp());
+        item.setImageUrl(newItemInfo.getImageUrl());
+        item.setLatestPriceTimestamp(Instant.now());
         item.setUrl(newItemInfo.getUrl());
     }
 
