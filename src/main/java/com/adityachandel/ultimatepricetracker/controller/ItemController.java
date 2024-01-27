@@ -36,4 +36,9 @@ public class ItemController {
         itemService.delete(id);
     }
 
+    @PutMapping("/id/{id}/newPrice/{newPrice}")
+    public ItemDTO updateDesiredPrice(@PathVariable long id, @PathVariable int newPrice) {
+        return itemService.updatePrice(id, newPrice);
+    }
+
 }

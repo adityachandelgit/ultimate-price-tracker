@@ -5,6 +5,7 @@ import com.adityachandel.ultimatepricetracker.model.Item;
 import com.adityachandel.ultimatepricetracker.model.api.dto.ItemDTO;
 import com.adityachandel.ultimatepricetracker.model.ItemPriceHistory;
 import com.adityachandel.ultimatepricetracker.model.api.request.ApiItemRequest;
+import com.adityachandel.ultimatepricetracker.model.entity.ItemEntity;
 import com.adityachandel.ultimatepricetracker.model.enums.PriceTrend;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import com.adityachandel.ultimatepricetracker.repository.ItemRepository;
@@ -100,5 +101,15 @@ public class ItemService {
 
     public ItemDTO get(long id) {
         return itemTransformer.transformDTO(itemTransformer.transform(itemRepository.findById(id).orElseThrow()));
+    }
+
+    public ItemDTO updatePrice(long id, int newPrice) {
+        Optional<ItemEntity> item = itemRepository.findById(id);
+        if (item.isPresent()) {
+            item.get().setDesiredPrice(newPrice);
+            return itemTransformer.transformDTO(itemTransformer.transform(itemRepository.save(item.get())));
+        } else {
+            throw new RuntimeException();
+        }
     }
 }
