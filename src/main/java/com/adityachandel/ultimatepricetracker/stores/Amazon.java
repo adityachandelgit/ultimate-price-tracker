@@ -5,7 +5,7 @@ import com.adityachandel.ultimatepricetracker.FetchException;
 import com.adityachandel.ultimatepricetracker.ItemUtils;
 import com.adityachandel.ultimatepricetracker.config.model.StoreCookieProperties;
 import com.adityachandel.ultimatepricetracker.model.Item;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
@@ -28,8 +28,8 @@ public class Amazon implements Store {
     @Override
     public Item fetchItem(Item item) {
         try {
-            NewItemInfo newItemInfo = getNewItemInfo(item.getExternalId());
-            ItemUtils.updateItem(item, newItemInfo);
+            NewItemDetails newItemDetails = getNewItemDetails(item.getExternalId());
+            ItemUtils.updateItem(item, newItemDetails);
             return item;
         } catch (Exception e) {
             log.error("Failed to fetch " + item.getUrl() + " | Error: " + e.getMessage());
@@ -38,7 +38,7 @@ public class Amazon implements Store {
     }
 
     @Override
-    public NewItemInfo getNewItemInfo(String itemId) {
+    public NewItemDetails getNewItemDetails(String itemId) {
         String url = buildUrl(itemId);
         Element root = null;
         try {
@@ -57,7 +57,7 @@ public class Amazon implements Store {
             }
             String name = root.select("div[id=aod-asin-title]").get(0).text();
             String image = root.select("img[id=aod-asin-image-id]").attr("src");
-            return NewItemInfo.builder()
+            return NewItemDetails.builder()
                     .id(itemId)
                     .store(StoreType.AMAZON)
                     .imageUrl(image)

@@ -1,9 +1,8 @@
 package com.adityachandel.ultimatepricetracker.stores;
 
 import com.adityachandel.ultimatepricetracker.FetchException;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
 import com.adityachandel.ultimatepricetracker.model.Item;
-import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -44,9 +43,8 @@ public class AnnTaylor implements Store {
     }
 
     @Override
-    public NewItemInfo getNewItemInfo(String itemId) {
+    public NewItemDetails getNewItemDetails(String itemId) {
         return null;
     }
-
 
 }

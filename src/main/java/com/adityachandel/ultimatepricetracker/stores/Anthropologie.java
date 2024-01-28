@@ -4,7 +4,11 @@ import com.adityachandel.ultimatepricetracker.FetchException;
 import com.adityachandel.ultimatepricetracker.ItemUtils;
 import com.adityachandel.ultimatepricetracker.config.model.StoreCookieProperties;
 import com.adityachandel.ultimatepricetracker.model.Item;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.Color;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.Size;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.SizePrice;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,14 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.Color;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.Size;
 
 @Slf4j
 @AllArgsConstructor
@@ -39,8 +39,8 @@ public class Anthropologie implements Store {
     @Override
     public Item fetchItem(Item item) {
         try {
-            NewItemInfo newItemInfo = getNewItemInfo(item.getExternalId());
-            ItemUtils.updateItem(item, newItemInfo);
+            NewItemDetails newItemDetails = getNewItemDetails(item.getExternalId());
+            ItemUtils.updateItem(item, newItemDetails);
             return item;
         } catch (Exception e) {
             log.error("Failed to fetch " + item.getUrl() + " | Error: " + e.getMessage());
@@ -50,35 +50,35 @@ public class Anthropologie implements Store {
 
     @SneakyThrows
     @Override
-    public NewItemInfo getNewItemInfo(String itemId) {
-        NewItemInfo newItemInfo = NewItemInfo.builder()
+    public NewItemDetails getNewItemDetails(String itemId) {
+        NewItemDetails newItemDetails = NewItemDetails.builder()
                 .id(itemId)
                 .store(StoreType.ANTHROPOLOGIE)
                 .url("https://www.anthropologie.com/shop/" + itemId)
                 .build();
-        List<ColorSizes> colorSizesList = new ArrayList<>();
+        List<ItemOptions> colorSizesList = new ArrayList<>();
         String url = "https://www.anthropologie.com/shop/" + itemId;
         Scanner scanner = new Scanner(getBody(url));
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             if (line.contains("window.urbn.initialState")) {
-                String l = line.replace("window.urbn.initialState = JSON.parse(", "").replace(", freezeReviver);", "").trim();
-                JsonNode root = objectMapper.readTree(objectMapper.readTree(l).asText());
+                line = line.replace("window.urbn.initialState = JSON.parse(", "").replace(", freezeReviver);", "").trim();
+                JsonNode root = objectMapper.readTree(objectMapper.readTree(line).asText());
                 String image = root.at("/product--" + itemId + "/core/catalogData/product/defaultImage").asText();
-                newItemInfo.setImageUrl("https://images.urbndata.com/is/image/Anthropologie/" + image);
+                newItemDetails.setImageUrl("https://images.urbndata.com/is/image/Anthropologie/" + image);
                 ArrayNode sliceItems = (ArrayNode) root.at("/product--" + itemId + "/core/catalogData/skuInfo/primarySlice/sliceItems");
-                newItemInfo.setName(root.at("/product--" + itemId + "/core/catalogData/product/displayName").asText());
+                newItemDetails.setName(root.at("/product--" + itemId + "/core/catalogData/product/displayName").asText());
                 for (JsonNode sliceItem : sliceItems) {
-                    ColorSizes colorSizes = ColorSizes.builder()
+                    ItemOptions itemOptions = ItemOptions.builder()
                             .color(Color.builder()
                                     .id(sliceItem.get("code").asText())
                                     .name(sliceItem.get("displayName").asText())
                                     .build())
                             .build();
-                    List<ColorSizes.SizePrice> sizePrices = new ArrayList<>();
+                    List<SizePrice> sizePrices = new ArrayList<>();
                     ArrayNode includedSkus = (ArrayNode) sliceItem.get("includedSkus");
                     for (JsonNode sku : includedSkus) {
-                        sizePrices.add(ColorSizes.SizePrice.builder()
+                        sizePrices.add(SizePrice.builder()
                                 .size(Size.builder()
                                         .name(sku.get("size").asText())
                                         .id(sku.get("sizeId").asText())
@@ -86,15 +86,16 @@ public class Anthropologie implements Store {
                                 .price(sku.get("salePrice").asLong())
                                 .build());
                     }
-                    colorSizes.setSizePrices(sizePrices);
-                    colorSizesList.add(colorSizes);
+                    itemOptions.setSizePrices(sizePrices);
+                    itemOptions.setImageUrl(
+                            sliceItem.get("swatchUrl").asText().substring(0, sliceItem.get("swatchUrl").asText().length() - 1) + sliceItem.get("images").get(0).asText()
+                    );
+                    colorSizesList.add(itemOptions);
                 }
-                newItemInfo.setMetadata(NewItemInfo.Options.builder()
-                        .colorSizes(colorSizesList)
-                        .build());
+                newItemDetails.setOptions(colorSizesList);
             }
         }
-        return newItemInfo;
+        return newItemDetails;
     }
 
     @NotNull

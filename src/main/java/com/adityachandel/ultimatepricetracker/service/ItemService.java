@@ -2,6 +2,7 @@ package com.adityachandel.ultimatepricetracker.service;
 
 import com.adityachandel.ultimatepricetracker.config.StoreConfig;
 import com.adityachandel.ultimatepricetracker.model.Item;
+import com.adityachandel.ultimatepricetracker.model.Metadata;
 import com.adityachandel.ultimatepricetracker.model.api.dto.ItemDTO;
 import com.adityachandel.ultimatepricetracker.model.ItemPriceHistory;
 import com.adityachandel.ultimatepricetracker.model.api.request.ApiItemRequest;
@@ -35,7 +36,7 @@ public class ItemService {
                 .store(request.getStore())
                 .metadata(request.getMetadata())
                 .build());
-        Optional<Item> existingItemOpt = findByExternalIdAndStore(request.getExternalId(), request.getStore());
+        Optional<Item> existingItemOpt = findByExternalIdAndStore(request.getExternalId(), request.getStore(), request.getMetadata());
         if (existingItemOpt.isPresent()) {
             Item existingItem = existingItemOpt.get();
             updateExistingItem(existingItem, item);
@@ -48,8 +49,8 @@ public class ItemService {
         return item;
     }
 
-    Optional<Item> findByExternalIdAndStore(String externalId, StoreType store) {
-        return itemRepository.findByExternalIdAndStore(externalId, store).map(itemTransformer::transform);
+    Optional<Item> findByExternalIdAndStore(String externalId, StoreType store, Metadata metadata) {
+        return itemRepository.findByExternalIdAndStoreAndMetadata(externalId, store, metadata).map(itemTransformer::transform);
     }
 
     Item saveItem(Item item) {

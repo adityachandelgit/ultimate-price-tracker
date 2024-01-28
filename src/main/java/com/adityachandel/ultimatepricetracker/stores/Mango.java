@@ -3,7 +3,7 @@ package com.adityachandel.ultimatepricetracker.stores;
 import com.adityachandel.ultimatepricetracker.FetchException;
 import com.adityachandel.ultimatepricetracker.ItemUtils;
 import com.adityachandel.ultimatepricetracker.model.Item;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +20,10 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes;
-import static com.adityachandel.ultimatepricetracker.model.NewItemInfo.Options.ColorSizes.*;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.Color;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.Size;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.SizePrice;
 
 
 @AllArgsConstructor
@@ -35,8 +37,8 @@ public class Mango implements Store {
     @Override
     public Item fetchItem(Item item) {
         try {
-            NewItemInfo newItemInfo = getNewItemInfo(item.getExternalId());
-            ItemUtils.updateItem(item, newItemInfo);
+            NewItemDetails newItemDetails = getNewItemDetails(item.getExternalId());
+            ItemUtils.updateItem(item, newItemDetails);
             return item;
         } catch (Exception e) {
             log.error("Failed to fetch " + item.getUrl() + " | Error: " + e.getMessage());
@@ -45,10 +47,22 @@ public class Mango implements Store {
     }
 
     @Override
-    public NewItemInfo getNewItemInfo(String itemId) {
+    public NewItemDetails getNewItemDetails(String itemId) {
         JsonNode root = getData(itemId);
+        List<ItemOptions> itemOptions = getItemOptions(root);
+        return NewItemDetails.builder()
+                .id(itemId)
+                .store(StoreType.MANGO)
+                .imageUrl("https://st.mngbcn.com/rcs/pics/static" + root.findPath("url").asText())
+                .name(root.get("name").asText())
+                .url("https://shop.mango.com" + root.get("canonicalUrl").asText())
+                .options(itemOptions)
+                .build();
+    }
+
+    private List<ItemOptions> getItemOptions(JsonNode root) {
         ArrayNode colors = (ArrayNode) root.get("colors").get("colors");
-        List<ColorSizes> colorSizes = new ArrayList<>();
+        List<ItemOptions> itemOptions = new ArrayList<>();
         for (JsonNode colorNode : colors) {
             Color color = Color.builder()
                     .id(colorNode.get("id").asText())
@@ -66,22 +80,26 @@ public class Mango implements Store {
                         .build();
                 sizePrices.add(sizePrice);
             }
-            colorSizes.add(ColorSizes.builder()
+            itemOptions.add(ItemOptions.builder()
                     .color(color)
+                    .imageUrl(getImageUrl(colorNode))
                     .sizePrices(sizePrices)
                     .build());
         }
+        return itemOptions;
+    }
 
-        return NewItemInfo.builder()
-                .id(itemId)
-                .store(StoreType.MANGO)
-                .imageUrl("https://st.mngbcn.com/rcs/pics/static" + root.findPath("url").asText())
-                .name(root.get("name").asText())
-                .url("https://shop.mango.com" + root.get("canonicalUrl").asText())
-                .metadata(NewItemInfo.Options.builder()
-                        .colorSizes(colorSizes)
-                        .build())
-                .build();
+    private String getImageUrl(JsonNode colorNode) {
+        ArrayNode colorImages = (ArrayNode) colorNode.get("images");
+        for (JsonNode colorImage : colorImages) {
+            ArrayNode colorImageImages = (ArrayNode) colorImage;
+            for (JsonNode colorImageImage : colorImageImages) {
+                if (colorImageImage.get("altText").asText().contains("Media plane")) {
+                    return colorImageImage.get("url").asText().split("\\?")[0];
+                }
+            }
+        }
+        throw new RuntimeException();
     }
 
     @SneakyThrows

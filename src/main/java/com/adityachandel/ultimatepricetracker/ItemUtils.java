@@ -1,40 +1,63 @@
 package com.adityachandel.ultimatepricetracker;
 
+
 import com.adityachandel.ultimatepricetracker.model.Item;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
+import com.adityachandel.ultimatepricetracker.model.Metadata;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.Color;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.Size;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails.ItemOptions.SizePrice;
 
 import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
 
 public class ItemUtils {
 
-    public static long getLatestPrice(NewItemInfo newItemInfo, Item item) {
-        for (NewItemInfo.Options.ColorSizes colorSize : newItemInfo.getMetadata().getColorSizes()) {
-            NewItemInfo.Options.ColorSizes.Color color = colorSize.getColor();
-            if (item.getMetadata().getColor().getId().equals(color.getId())) {
-                for (NewItemInfo.Options.ColorSizes.SizePrice sizePrice : colorSize.getSizePrices()) {
-                    NewItemInfo.Options.ColorSizes.Size size = sizePrice.getSize();
-                    if (item.getMetadata().getSize().getId().equals(size.getId())) {
-                        return sizePrice.getPrice();
+    public static void updateItem(Item item, NewItemDetails newItemDetails) {
+        item.setName(getName(item, newItemDetails));
+        item.setLatestPrice(getLatestPrice(item, newItemDetails));
+        item.setImageUrl(getImageUrl(item, newItemDetails));
+        item.setLatestPriceTimestamp(Instant.now());
+        item.setUrl(newItemDetails.getUrl());
+    }
+
+    private static String getName(Item item, NewItemDetails newItemDetails) {
+        String name = newItemDetails.getName();
+        if (item.getMetadata() != null) {
+            name += " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName();
+        }
+        return name;
+    }
+
+    private static long getLatestPrice(Item item, NewItemDetails newItemDetails) {
+        if (item.getMetadata() != null) {
+            Metadata.Color color = item.getMetadata().getColor();
+            if (color != null) {
+                Optional<ItemOptions> options = newItemDetails.getOptions().stream().filter(o -> o.getColor().getId().equals(color.getId())).findFirst();
+                if (options.isPresent() && options.get().getSizePrices() != null) {
+                    Optional<SizePrice> sizePrice = options.get().getSizePrices().stream().filter(sp -> Objects.equals(sp.getSize().getId(), item.getMetadata().getSize().getId())).findFirst();
+                    if (sizePrice.isPresent()) {
+                        return sizePrice.get().getPrice();
                     }
                 }
             }
         }
-        throw new RuntimeException();
+        return newItemDetails.getPrice();
     }
 
-    public static void updateItem(Item item, NewItemInfo newItemInfo) {
-        String name = newItemInfo.getName();
-        if (newItemInfo.getMetadata() != null) {
-            name += " | " + item.getMetadata().getColor().getName() + " | " + item.getMetadata().getSize().getName();
-            item.setLatestPrice(getLatestPrice(newItemInfo, item));
-        } else {
-            item.setLatestPrice(newItemInfo.getPrice());
+    private static String getImageUrl(Item item, NewItemDetails newItemDetails) {
+        if (item.getMetadata() != null) {
+            Metadata.Color color = item.getMetadata().getColor();
+            if (color != null) {
+                Optional<ItemOptions> options = newItemDetails.getOptions().stream().filter(o -> o.getColor().getId().equals(color.getId())).findFirst();
+                if (options.isPresent() && options.get().getImageUrl() != null) {
+                    return options.get().getImageUrl();
+                }
+            }
         }
-        item.setName(name);
-        item.setLatestPriceTimestamp(newItemInfo.getLatestPriceTimestamp());
-        item.setImageUrl(newItemInfo.getImageUrl());
-        item.setLatestPriceTimestamp(Instant.now());
-        item.setUrl(newItemInfo.getUrl());
+        return newItemDetails.getImageUrl();
     }
 
 }

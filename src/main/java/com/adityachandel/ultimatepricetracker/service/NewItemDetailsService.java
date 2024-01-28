@@ -1,19 +1,18 @@
 package com.adityachandel.ultimatepricetracker.service;
 
 import com.adityachandel.ultimatepricetracker.config.StoreConfig;
-import com.adityachandel.ultimatepricetracker.model.NewItemInfo;
+import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
-import com.adityachandel.ultimatepricetracker.stores.Store;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class NewItemInfoService {
+public class NewItemDetailsService {
 
     private final StoreConfig storeConfig;
 
-    public NewItemInfo get(StoreType storeType, String itemId) {
-        return storeConfig.getStore(storeType).getNewItemInfo(itemId);
+    public NewItemDetails get(StoreType storeType, String itemId) {
+        return storeConfig.getStore(storeType).getNewItemDetails(itemId);
     }
 }
