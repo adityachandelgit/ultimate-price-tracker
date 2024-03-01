@@ -44,8 +44,17 @@ public enum StoreType {
             "Anthropologie",
             true,
             true,
-            "https://res.cloudinary.com/crunchbase-production/image/upload/k4gyh3zlmwrxo1t3ioh6"
-    );
+            "https://cdn.iconscout.com/icon/free/png-512/free-a-21-283530.png"
+    ),
+    MAXAROMA(
+            "MAXAROMA",
+            "0 0 10/6 ? * * *",
+            "Maxaroma",
+            false,
+            false,
+            "https://cdn.iconscout.com/icon/free/png-512/free-m-33-675836.png"
+    )
+    ;
 
     StoreType(String enumName, String defaultCron, String name, boolean supportsColor, boolean supportsSize, String iconUrl) {
         this.enumName = enumName;

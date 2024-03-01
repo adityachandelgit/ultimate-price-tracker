@@ -58,12 +58,13 @@ public class Anthropologie implements Store {
                 .build();
         List<ItemOptions> colorSizesList = new ArrayList<>();
         String url = "https://www.anthropologie.com/shop/" + itemId;
-        Scanner scanner = new Scanner(getBody(url));
+        String body = getBody(url);
+        Scanner scanner = new Scanner(body);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (line.contains("window.urbn.initialState")) {
-                line = line.replace("window.urbn.initialState = JSON.parse(", "").replace(", freezeReviver);", "").trim();
-                JsonNode root = objectMapper.readTree(objectMapper.readTree(line).asText());
+            if (line.contains("clientSideSlugs")) {
+                line = line.replace("<script type=\"mime/invalid\" id=\"urbnInitialState\">", "").replace("</script>", "").trim();
+                JsonNode root = objectMapper.readTree(line);
                 String image = root.at("/product--" + itemId + "/core/catalogData/product/defaultImage").asText();
                 newItemDetails.setImageUrl("https://images.urbndata.com/is/image/Anthropologie/" + image);
                 ArrayNode sliceItems = (ArrayNode) root.at("/product--" + itemId + "/core/catalogData/skuInfo/primarySlice/sliceItems");
