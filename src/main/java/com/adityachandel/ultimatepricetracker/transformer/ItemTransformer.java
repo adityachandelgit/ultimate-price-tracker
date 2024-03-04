@@ -58,6 +58,7 @@ public class ItemTransformer {
                 .latestPriceTimestamp(item.getLatestPriceTimestamp())
                 .trackingEnabled(item.isTrackingEnabled())
                 .metadata(item.getMetadata())
+                .priceTrend(item.getPriceTrend())
                 .build();
     }
 
