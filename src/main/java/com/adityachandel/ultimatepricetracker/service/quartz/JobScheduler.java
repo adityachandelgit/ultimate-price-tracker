@@ -21,7 +21,6 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 public class JobScheduler {
 
     private final Scheduler scheduler;
-    private final StateRepository stateRepository;
 
     @PostConstruct
     public void init() {

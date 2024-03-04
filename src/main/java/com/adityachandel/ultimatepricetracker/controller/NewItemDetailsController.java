@@ -1,6 +1,7 @@
 package com.adityachandel.ultimatepricetracker.controller;
 
 import com.adityachandel.ultimatepricetracker.model.NewItemDetails;
+import com.adityachandel.ultimatepricetracker.model.api.request.GetNewItemDetailsRequest;
 import com.adityachandel.ultimatepricetracker.model.enums.StoreType;
 import com.adityachandel.ultimatepricetracker.service.NewItemDetailsService;
 import lombok.AllArgsConstructor;
@@ -13,9 +14,9 @@ public class NewItemDetailsController {
 
     private final NewItemDetailsService newItemDetailsService;
 
-    @GetMapping("/store/{store}/item/{id}")
-    public NewItemDetails get(@PathVariable String id, @PathVariable StoreType store) {
-        return newItemDetailsService.get(store, id);
+    @PostMapping()
+    public NewItemDetails get(@RequestBody GetNewItemDetailsRequest request) {
+        return newItemDetailsService.get(request.getStore(), request.getItemId());
     }
 
 }
