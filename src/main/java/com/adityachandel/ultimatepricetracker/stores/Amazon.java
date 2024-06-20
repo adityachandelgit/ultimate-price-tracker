@@ -48,7 +48,7 @@ public class Amazon implements Store {
             for (Element element : elements) {
                 String soldByInner = Objects.requireNonNull(element.getElementById("aod-offer-soldBy")).text();
                 int price = Integer.parseInt(element.getElementsByClass("a-price-whole").get(0).text().split("\\.")[0].replace(",", ""));
-                if (soldByInner.contains("Amazon Warehouse")) {
+                if (soldByInner.contains("Amazon Resale")) {
                     lowestPrice = Math.min(lowestPrice, price);
                 }
             }

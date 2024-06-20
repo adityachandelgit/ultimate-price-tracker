@@ -25,4 +25,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: retr0spect101/ultimate-price-tracker:0.0.2
+          tags: retr0spect101/ultimate-price-tracker:0.0.3
